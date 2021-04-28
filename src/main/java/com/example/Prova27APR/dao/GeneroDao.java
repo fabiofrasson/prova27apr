@@ -3,10 +3,7 @@ package com.example.Prova27APR.dao;
 import com.example.Prova27APR.factory.ConnectionFactory;
 import com.example.Prova27APR.models.Genero;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +37,7 @@ public class GeneroDao {
                 "(nome) VALUES (?);";
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             preparedStatement.setString(1, genero.getNome());
 
@@ -48,8 +45,9 @@ public class GeneroDao {
 
             ResultSet resultSet = preparedStatement.getGeneratedKeys();
 
-            while (resultSet.next()) {
-                genero.setId(resultSet.getInt(1));
+            if (resultSet.next()) {
+                int id = resultSet.getInt(1);
+                genero.setId(id);
             }
         } catch (SQLException error) {
             throw new RuntimeException(error);
@@ -65,21 +63,22 @@ public class GeneroDao {
     }
 
     public List<Genero> listaGeneros() {
-        String sql = "SELECT * FROM genero;";
-
         try {
+            List<Genero> generos = new ArrayList<Genero>();
+            String sql = "SELECT * FROM genero;";
+
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            List<Genero> generos = new ArrayList<>();
-            Genero genero = new Genero();
-
             while (resultSet.next()) {
+                Genero genero = new Genero();
                 genero.setId(resultSet.getInt("id"));
                 genero.setNome(resultSet.getString("nome"));
 
                 generos.add(genero);
             }
+            resultSet.close();
+            preparedStatement.close();
             return generos;
         } catch (SQLException error) {
             throw new RuntimeException(error);
@@ -87,19 +86,22 @@ public class GeneroDao {
     }
 
     public Genero buscaGeneroPorId(int id) {
-        String sql = "SELECT * FROM genero WHERE id = ?;";
-
         try {
+            String sql = "SELECT * FROM genero WHERE id = ?;";
+
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
+            if (resultSet.next()) {
                 Genero genero = new Genero();
                 genero.setId(resultSet.getInt("id"));
                 genero.setNome(resultSet.getString("nome"));
                 return genero;
+            } else {
+                System.out.println("Gênero não encontrado!");
+                return null;
             }
         } catch (SQLException error) {
             throw new RuntimeException(error);
@@ -112,6 +114,5 @@ public class GeneroDao {
                 }
             }
         }
-        return null;
     }
 }

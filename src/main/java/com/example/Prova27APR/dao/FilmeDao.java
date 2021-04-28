@@ -4,10 +4,7 @@ import com.example.Prova27APR.factory.ConnectionFactory;
 import com.example.Prova27APR.models.Filme;
 import com.example.Prova27APR.models.Genero;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,12 +38,12 @@ public class FilmeDao {
     }
 
     public void adicionaFilme(Filme filme) {
-        String sql = "INSERT INTO filme" +
+        String sql = "INSERT INTO filme " +
                 "(nome, anoLanc, duracao, idGenero) " +
                 "VALUES (?, ?, ?, ?);";
 
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             preparedStatement.setString(1, filme.getNome());
             preparedStatement.setInt(2, filme.getAnoLanc());
@@ -57,11 +54,13 @@ public class FilmeDao {
 
             ResultSet resultSet = preparedStatement.getGeneratedKeys();
 
-            while (resultSet.next()) {
-                filme.setId(resultSet.getInt(1));
+            if (resultSet.next()) {
+                int id = resultSet.getInt(1);
+                filme.setId(id);
             }
+            preparedStatement.close();
         } catch (SQLException error) {
-            throw new RuntimeException(error);
+            error.printStackTrace();
         } finally {
             if (connection != null) {
                 try {
@@ -74,16 +73,15 @@ public class FilmeDao {
     }
 
     public List<Filme> listaFilmes() {
-        String sql = "SELECT * FROM filme;";
-
         try {
+            List<Filme> filmes = new ArrayList<>();
+            String sql = "SELECT * FROM filme;";
+
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            List<Filme> filmes = new ArrayList<>();
-            Filme filme = new Filme();
-
             while (resultSet.next()) {
+                Filme filme = new Filme();
                 filme.setId(resultSet.getInt("id"));
                 filme.setNome(resultSet.getString("nome"));
                 filme.setAnoLanc(resultSet.getInt("anoLanc"));
@@ -94,6 +92,8 @@ public class FilmeDao {
 
                 filmes.add(filme);
             }
+            resultSet.close();
+            preparedStatement.close();
             return filmes;
         } catch (SQLException erro) {
             throw new RuntimeException(erro);
@@ -109,15 +109,14 @@ public class FilmeDao {
     }
 
     public Filme buscaFilmePorId(int id) {
-        String sql = "SELECT * FROM filme WHERE id = ?;";
-
         try {
+            String sql = "SELECT * FROM filme WHERE id = ?;";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
+            if (resultSet.next()) {
                 Filme filme = new Filme();
                 filme.setId(resultSet.getInt("id"));
                 filme.setNome(resultSet.getString("nome"));
@@ -128,6 +127,9 @@ public class FilmeDao {
                 filme.setGenero(genero);
 
                 return filme;
+            } else {
+                System.out.println("Filme não encontrado!");
+                return null;
             }
         } catch (SQLException erro) {
             throw new RuntimeException(erro);
@@ -140,6 +142,5 @@ public class FilmeDao {
                 }
             }
         }
-        return null;
     }
 }

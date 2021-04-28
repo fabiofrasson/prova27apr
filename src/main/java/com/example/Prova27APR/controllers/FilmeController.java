@@ -27,6 +27,7 @@ public class FilmeController {
         FilmeDao filmeDao = new FilmeDao();
         filmeDao.adicionaFilme(filme);
         return Response.ok(new Gson().toJson(filme)).build();
+//        return Response.status(Response.Status.CREATED).entity(filme).build();
     }
 
     @GET
