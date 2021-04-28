@@ -26,7 +26,7 @@ public class FilmeDao {
                 "duracao INT," +
                 "idGenero INT," +
                 "PRIMARY KEY(id)," +
-                "CONTRAINT FK_idGenero FOREIGN KEY (idGenero) REFERENCES genero(id)" +
+                "FOREIGN KEY (idGenero) REFERENCES genero(id)" +
                 ");";
 
         try {

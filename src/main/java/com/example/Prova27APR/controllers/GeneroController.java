@@ -7,13 +7,12 @@ import com.google.gson.Gson;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.List;
 
 @Path("genero")
 public class GeneroController {
     @GET
-    @Path("/criatabela")
+    @Path("criatabelagenero")
     @Produces(MediaType.APPLICATION_JSON)
     public Response criaTabelaGenero() {
         GeneroDao generoDao = new GeneroDao();
@@ -39,9 +38,11 @@ public class GeneroController {
     }
 
     @GET
-    @Path("/{id}")
+    @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response encontraGeneroPorId(@PathParam("id") int id) {
-        GeneroDao
+        GeneroDao generoDao = new GeneroDao();
+        Genero genero = generoDao.buscaGeneroPorId(id);
+        return Response.ok(new Gson().toJson(genero)).build();
     }
 }
